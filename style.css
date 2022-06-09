@@ -1,0 +1,93 @@
+body { 
+    background-image: url("/RevisedUneditedImages/background.png");
+    background-size: cover;
+  }
+  
+  .hidden{
+    visibility: hidden;
+  }
+
+  .userStuff{
+    margin-left: auto;
+    margin-right: auto;
+    top: 5px;
+    position: relative;
+    width: 225px;
+    height: 40px;
+    font-size: 20px;
+    background-color: black;
+  }
+  
+  .inputText{
+    color: white;
+    background-color: black;
+  }
+  
+  .spinner{
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    z-index: -1;
+  }
+  
+  .spinWrapper{
+    overflow: hidden;
+    position: relative;
+    width: 610px;
+    height: 610px;
+    margin: 0 auto;
+    top: 285px;
+    left: -10px;
+  }
+  
+
+  
+  .pointer{
+    transform: scale(0.8) rotate(0deg);
+    transform-origin: inherit;
+  }
+  .pointerWrapper{
+    position: relative;
+    z-index: 1;
+    width: 300px;
+    height: 300px;
+    left: 475px;
+    top: -150px;
+    margin: 0 auto;
+    transform-origin: -335px 131px;
+  
+  }
+  
+
+
+  /*Used to show the transform origin point, no longer needed to be shown
+
+  .test{
+    position: relative;
+    margin: 0 auto;
+    width: 300px;
+    height: 300px;
+    top: -450px;
+    left: 475px;
+    z-index: 5;
+    background: rgba(127, 127, 127, 0.5);
+    transform-origin: -335px 131px;
+  }
+  span{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: scale(0.001);
+    transform-origin: inherit;
+  }
+  
+  span::after{
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    background: rgba(255,0,0,1);
+    transform: scale(1000);
+  }
+*/
