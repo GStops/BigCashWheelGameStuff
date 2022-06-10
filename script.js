@@ -4,7 +4,7 @@ gsap.registerPlugin(CustomEase);
 let spinnerTimeline = gsap.timeline({paused: true, autoRemoveChildren: true});
 let pointerTimeline;
 
-//used to calculate the degree rotation for the spinner and pointer. Leave as 0.
+//used to calculate the degree rotation for the spinner and pointer. Changes after every spin. 
 let prevSpinnerRotation = 0;
 let prevPointerRotation = 0;
 
@@ -13,19 +13,19 @@ let pointerMaxDegree = 170;
 
 //Seperation between different slices of the wheel so that there is no dispute over where the pointer landed.
 let wheelNumbersToAngles = {
-    0: [-4, 14],
-    1: [16, 33],
-    2: [35, 63],
-    3: [65, 94],
-    4: [96, 124],
-    5: [126, 154],
-    6: [155, 184],
-    7: [186, 214],
-    8: [216, 244],
-    9: [246, 274],
-    10: [276, 304],
-    11: [306, 334],
-    12: [336, 354],
+    0: [-6, 12],
+    1: [14, 32],
+    2: [34, 62],
+    3: [64, 93],
+    4: [95, 123],
+    5: [124, 152],
+    6: [154, 182],
+    7: [184, 212],
+    8: [214, 242],
+    9: [244, 272],
+    10: [274, 302],
+    11: [304, 333],
+    12: [334, 352],
 };
 
 
@@ -33,23 +33,21 @@ let wheelNumbersToAngles = {
 /*Pointer rotation
     Sets the pointer animation timeline
     returns the angle the pointer is at in degrees
-    3 parts to the timeline. Revert to original from previous spin, Bounce back and forth, move to the random position. 
+    3 parts to the timeline: Revert to original from previous spin, Bounce back and forth, move to the random position. 
 */
 let pointerRotation = function(time){
-    pointerTimeline = gsap.timeline({paused: true});
-    let randomPointerRotation = Math.floor(Math.random()* 170 + 1);
+    pointerTimeline = gsap.timeline({paused: true, defaults:{ease: "linear"}});
+    let randomPointerRotation = Math.floor(Math.random()* pointerMaxDegree + 1);
     let totalPointerDegrees = prevPointerRotation + 4*pointerMaxDegree + randomPointerRotation;
     let degreesPerSec = time/totalPointerDegrees
     pointerTimeline.to(".pointer",{
         duration: degreesPerSec * prevPointerRotation,
         rotation: "+=" + prevPointerRotation,
-        ease: "linear",
     });
 
     pointerTimeline.to(".pointer", { //Bounces back and forth
         duration: degreesPerSec * pointerMaxDegree,
         rotation: "-=" + pointerMaxDegree,
-        ease: "linear",
         yoyo: true,
         repeat: 3,
     });
@@ -57,7 +55,6 @@ let pointerRotation = function(time){
     pointerTimeline.to(".pointer", { //random rotation after the bouncing
         duration: degreesPerSec * randomPointerRotation,
         rotation: "-=" + randomPointerRotation,
-        ease: "linear",
     });
 
     
@@ -66,36 +63,35 @@ let pointerRotation = function(time){
 
 
 
-/* Spinner rotation calculation helper method 
-    returns the total rotation and just the rotation added to make the given number win
+/*Can be used for win or loss, just call this method and add the extra angle*/
+let generalSpinnerRotationCalc = function(){
+    let random360Amount = 360 * Math.floor(Math.random()*  4 + 7); //Just to increase amount of spins
+    let resetBackToStart = prevSpinnerRotation;
+    return resetBackToStart + random360Amount;
+}
+
+/* Spinner winning rotation calculation method 
+    returns the total rotation and the rotation added to shift the spinner to the winning number
 */
-let spinnerRotationCalc = function(winNumber){
+let winningSpinnerRotationCalc = function(winNumber, pointerExtraDeg){
     let winNumberMinDeg = wheelNumbersToAngles[winNumber][0];
     let winNumberMaxDeg = wheelNumbersToAngles[winNumber][1];
-
     //random amount between the bounds of the min and max degrees of the winning slice
-    let spinnerExtraDegCalc = Math.floor(Math.random()* (winNumberMaxDeg-winNumberMinDeg + 1) + winNumberMinDeg);
-    let random360Amount = 360 * Math.floor(Math.random()*  4 + 7); //Just to increase amount of spins
-    let totalSpinnerRotation = random360Amount - spinnerExtraDegCalc  + prevSpinnerRotation;
-    return [totalSpinnerRotation, spinnerExtraDegCalc];
+    let spinnerWinDegCalc = Math.floor(Math.random()* (winNumberMaxDeg-winNumberMinDeg) + winNumberMinDeg);
+    let totalSpinnerRotation = generalSpinnerRotationCalc() - spinnerWinDegCalc - pointerExtraDeg;
+    return [totalSpinnerRotation, spinnerWinDegCalc + pointerExtraDeg];
 }
 
 
-
-/* Spinner rotation method
-    Sets up spinner animation in the timeline, returns the prev rotation amount
+/*Sets up and plays spinner / pointer animations
+    Can be used for win or loss.
 */
-let spinnerRotation = function(time, winNumber, pointerRotation){
-    let spinnerInfo = spinnerRotationCalc(winNumber);
-    let totalSpinnerRotation = spinnerInfo[0];
-    let spinnerExtraDegCalc = spinnerInfo[1];
-
-    //spinner animation
+let generalAnimationMethod = function(time, totalRotation){
+    //Spinner animation
     spinnerTimeline.to(".spinner", {
         duration: time,
         ease: CustomEase.create("custom", "M0,0,C0.178,0,0.391,0.643,0.516,0.822,0.64,1,0.718,1,1,1"),
-        rotation: "+=" + (totalSpinnerRotation - pointerRotation),
-
+        rotation: "+=" + (totalRotation),
         onComplete: function(){
             gsap.set(".spinner", {
                 rotation: gsap.getProperty(".spinner", "rotation") % 360, //sets rotation to same location but at a smaller degree. 
@@ -107,33 +103,32 @@ let spinnerRotation = function(time, winNumber, pointerRotation){
             document.querySelector(".instant").classList.add("hidden");
             document.querySelector(".hidden").disabled = true;
 
-            //resets timescale back to 1x speed
-            gsap.globalTimeline.timeScale(1);
+            gsap.globalTimeline.timeScale(1); //resets timescale back to 1x speed
         }
     });
-    return spinnerExtraDegCalc + pointerRotation;
-}
 
-
-/* Method called when user wins. 
-Matches pointer rotation to spinner rotation so that the winning number lines up with pointer
-*/
-let winMethod = function(time, winNumber){
-    let extraPointerRotation = pointerRotation(time); //Sets the pointer timeline / returns the degree of the pointer
-    let changeInRotation = spinnerRotation(time, winNumber, extraPointerRotation); //Sets the spinner timeline / returns the degree of the spinner
-    
     spinnerTimeline.restart(); //plays the spinner animation
-    gsap.to(pointerTimeline, { //plays the pointer animation, helper needed to call the entire timeline with an ease on it. 
+
+    gsap.to(pointerTimeline, { //plays the pointer animation, calls the entire timeline with an ease on it. 
         time: pointerTimeline.duration(),
         duration: pointerTimeline.duration(),
         ease: CustomEase.create("custom", "M0,0,C0.016,0,0.067,0.022,0.138,0.124,0.21,0.228,0.286,0.38,0.348,0.5,0.404,0.61,0.53,0.842,0.62,0.91,0.713,0.981,0.869,1,1,1"),
     }); 
 
     spinnerTimeline.invalidate(); //stops the animation from reverting the spinner back to original angle
-
-    prevSpinnerRotation = changeInRotation;
-    prevPointerRotation = extraPointerRotation;
 }
+
+
+let winMethod = function(time, winNumber){
+    let pointerExtraDeg = pointerRotation(time); //Sets the pointer timeline / returns the degree of the pointer
+    let spinnerInfo = winningSpinnerRotationCalc(winNumber, pointerExtraDeg); 
+    let totalSpinnerRotation = spinnerInfo[0];
+    let spinnerExtraDeg = spinnerInfo[1];
+    generalAnimationMethod(time, totalSpinnerRotation);
+    prevSpinnerRotation = spinnerExtraDeg;
+    prevPointerRotation = pointerExtraDeg;
+}
+
 
 
 //start button click function

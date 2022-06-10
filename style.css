@@ -33,11 +33,11 @@ body {
   .spinWrapper{
     overflow: hidden;
     position: relative;
-    width: 610px;
-    height: 610px;
+    width: 31.77vw;
+    height: 62.95vh;
     margin: 0 auto;
-    top: 285px;
-    left: -10px;
+    top: 29.6vh;
+    left: -0.45vw;
   }
   
 
@@ -49,30 +49,31 @@ body {
   .pointerWrapper{
     position: relative;
     z-index: 1;
-    width: 300px;
-    height: 300px;
-    left: 475px;
-    top: -150px;
+    width: 15.625vw;
+    height: 30.96vh;
+    left: 24.7vw;
+    top: -15.5vh;
     margin: 0 auto;
-    transform-origin: -335px 131px;
+    transform-origin: -17.45vw 13.55vh;
   
   }
   
-
 
   /*Used to show the transform origin point, no longer needed to be shown
 
   .test{
     position: relative;
     margin: 0 auto;
-    width: 300px;
-    height: 300px;
+    width: 15.625vw;
+    height: 30.96vh;
     top: -450px;
     left: 475px;
     z-index: 5;
     background: rgba(127, 127, 127, 0.5);
     transform-origin: -335px 131px;
+    
   }
+  
   span{
     position: absolute;
     width: 100%;
